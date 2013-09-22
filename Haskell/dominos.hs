@@ -1,44 +1,80 @@
-
-dominos = [(x, y) | x <- [0..6], y <- [0..6], x <= y]
 {-
-del i x = (take i x) ++ (take (length x - i - 1) . reverse $ x)
+dominos = reverse [(x, y) | x <- [0..6], y <- [0..6], x <= y]
 
-sumFst = foldr (\(a,b) acc -> acc + a) 0 
-sumSnd = foldr (\(a,b) acc -> acc + b) 0
-
-sum' (a,b) = a+b
-checkRow row = length row == 6 && sumFst row == 13 && sumSnd row == 13
-checkCols ([]:[]:[]) = True
-checkCols ((a:as):(b:bs):(c:cs):[]) = sum' a + sum' b + sum' c == 13 && (checkCols [as, bs, cs])
-checkCols _ = False
-
-d1 (a:b:c:[]) = sum [fst $ a !! 0, snd $ a !! 1, fst $ b !! 2, snd $ b !! 3, fst $ c !! 4, snd $ c !! 5]
-d2 (a:b:c:[]) = sum [fst $ a !! 5, snd $ a !! 4, fst $ b !! 3, snd $ b !! 2, fst $ c !! 1, snd $ c !! 0]
-checkDiagonals t@(a:b:c:[]) = if length a == 6 && length b == 6 && length c == 6 then (d1 t == 13 && d2 t == 13) else False
-check (t@(a:b:c:[])) = (checkRow a && checkRow b && checkRow c && checkCols t && checkDiagonals t)
-
-
-add t@(a:b:c:[]) d = 
-    if length a < 6 then (a ++ [d]):b:c:[] else 
-        if length b < 6 then a:(b ++ [d]):c:[] else
-            if length c < 6 then a:b:(c ++ [d]):[] else t
-
---rock = solve dominos [[],[],[]]
--}
+sumValue = fromIntegral 6
+cols = fromIntegral 4
+rows = fromIntegral 2
 
 lastn n [] = []
 lastn n x@(_:xs) = if n == 0 then x else lastn (n - 1) xs
 groupn _ [] = []
-groupn n x = (take n x) : (groupn n $ lastn n x)
+groupn n x = (take (fromIntegral n) x) : (groupn n $ lastn n x)
 
-overflow n r = length r < n && ((fst s) > 13 || (snd s) > 13) where s = (foldl (\(x,y) (a,b) -> (x+a,y+b)) (0,0) r)
-accept n r = length r == n && (s == (13,13)) where s = (foldl (\(x,y) (a,b) -> (x+a,y+b)) (0,0) r)
-rotate :: [[(a, a)]] -> [[(a, a)]]
-rotate a = (foldl (\x c -> head c : x) [] a) : (rotate $ map tail a)
+sum' = foldl (\(x,y) (a,b) -> (x+a,y+b)) (0,0)
 
-d1 a = sum [fst $ a !! 0, snd $ a !! 1, fst $ a !! 8, snd $ a !! 9, fst $ a !! 16, snd $ a !! 17]
+overflow n r = (l < n && (s1 > sumValue || s2 > sumValue)) || (l == n && (s1 < sumValue || s2 < sumValue))
+    where s = sum' r
+          l = length r
+          s1 = fst s
+          s2 = snd s
+
+accept n r = length r == n && (s == (sumValue,sumValue)) where s = sum' r
+
+rotate ([]:_) = []
+rotate a = (foldl (\x c -> if c == [] then x else head c : x) [] a) 
+    : (rotate $ map (\x -> if x == [] then x else tail x) a)
+
+d1 a = sum [fst $ a !! 0, snd $ a !! 1, fst $ a !! 8, snd $ a !! 9, fst $ a !! 14, snd $ a !! 17]
 d2 a = sum [fst $ a !! 5, snd $ a !! 4, fst $ a !! 9, snd $ a !! 8, fst $ a !! 13, snd $ a !! 12]
 
---colsSumsCheck a = 
+precheck a = (foldr1 (&&) $ map (not.overflow (fromIntegral cols)) ga) -- && (foldr1 (&&) $ map (not.overflow (fromIntegral rows)) $ rotate ga)
+    where ga = groupn cols a
+check a = (fromIntegral $ length a) == cols * rows && (foldr1 (&&) $ map (accept (fromIntegral cols)) $ groupn cols a) -- && d1 a == sumValue && d2 a == sumValue
 
+next _ _ _ [] = Nothing
+next acc left c@(d1,d2) right@(r:rs) =
+    if precheck new && result /= Nothing then result 
+    else if precheck newRev && resultRev /= Nothing then resultRev
+         else next acc (left ++ [c]) r rs
+            where new = acc ++ [c]
+                  newRev = acc ++ [(d2,d1)]
+                  result = bruteforce new (left ++ right)
+                  resultRev = bruteforce newRev (left ++ right)
+        
+bruteforce acc rest = 
+    if (fromIntegral $ length acc) > cols * rows then Nothing 
+    else if check acc then Just acc 
+         else next acc [] (head rest) (tail rest)
 
+solve = bruteforce [] dominos
+
+----------------------------------------------------------------------------------------------
+-}
+
+solve = bruteforce [] dominos
+dominos = reverse [(x, y) | x <- [0..6], y <- [0..6], x <= y]
+
+sum' = foldl (\(x,y) (a,b) -> (x+a,y+b)) (0,0)
+precheck a = length a <= 6 && s1 <= 13 && s2 <= 13
+    if l <= 6 then s1 <= 13 && s2 <= 13
+    where s = sum' a
+          l = length a
+          s1 = fst s
+          s2 = snd s
+
+check a = length a == 18 && (sum' a) == (3*13,3*13)
+
+next _ _ _ [] = Nothing
+next acc left c@(d1,d2) right@(r:rs) =
+    if precheck new && result /= Nothing then result 
+    else if precheck newRev && resultRev /= Nothing then resultRev
+         else next acc (c:left) r rs
+            where new = c:acc
+                  newRev = (d2,d1):acc
+                  result = bruteforce new (left ++ right)
+                  resultRev = bruteforce newRev (left ++ right)
+        
+bruteforce acc rest = 
+    if length acc > 6 then Nothing 
+    else if check acc then Just acc
+         else next acc [] (head rest) (tail rest)
