@@ -1,0 +1,66 @@
+// Machine to Brainfuck
+
+// ![x] - current cell
+
+d - need space; q0 - code of state
+reading = -[right(d),]
+
+preparation = +[-<+] right(d-1) add(q0)
+"-1" - not found yet; "-2" - already found
+setting up flag = <-
+
+down = ++
+
+up = <[->+<]>-- // ![0][0] -> ![0][-2]; ![1][0] -> ![0][-1];
+
+cmp = [->-<]+>[<-> zero]< // ![a][b] -> ![1][0] when a == b; ![a][b] -> ![0][0] when a <> b;
+
+not = -[+<+>]< // [0]![0] -> ![1][0]; [0]![1] -> ![0][0];
+
+and = [->+<]<+>--[[+]<->]< // !00 -> !00; !01 -> !00; !10 -> !00; !11 -> !10;
+
+or  = [->+<]>[[-]<+>]<     // !00 -> !00; !01 -> !10; !10 -> !10; !11 -> !10;
+
+// Part of BF tape
+// [b] [cmp q / cmp a] [copy q / copy a] [flag2 / res of cmp a] [flag1 / res of cmp q] [q][a][...]
+
+copy q = [-<<<+<+>>>>]<<<<[->>>>+<<<<] // at the end stands on [cmp q] cell, which is zero
+write(q') = add(q') // at the end it stands on [cmp q] cell, which now has value of q' code
+cmp(q,q') = cmp // at the end it stands on [cmp q] cell, which has a result
+cmp q res to flag1 cell = [->>>+<<<]
+copy a = [-<<<<+<+>>>>>]<<<<<[->>>>>+<<<<<]
+write a' = add(a')
+cmp a res to flag2 cell = [->>+<<]
+and(cmp results {same as (flag1, flag2)}) = and
+
+Delta elem = 
+    down[ + > copy(q) write(q') cmp(q,q') (cmp q res to flag1 cell) >>>>> 
+              copy(a) write(a') cmp(a,a') (cmp a res to flag2 cell) >>
+              and(cmp results) [->>[-]>[-] add(b) shift(d) < add(p) <+< ] > [-<->] <+> ] up
+
+// delta[q, a] -> [p, b, direction]
+full delta elem (q', a', b, d, p, direction) =
+    ++[+> [-<<<+<+>>>>]<<<<[->>>>+<<<<]      add(q') [->-<]+>[<-> zero]< [->>>+<<<] >>>>>
+          [-<<<<+<+>>>>>]<<<<<[->>>>>+<<<<<] add(a') [->-<]+>[<-> zero]< [->>+<<]   >>
+          [->+<]<+>--[[+]<->]< [->>[-]>[-] add(b) shift(d, direction) < add(p) <+< ] > [-<->] <+> ]
+          <[->+<]>--
+
+full delta elem = fde
+
+exit = +
+
+delta function = [fde1 fde2 ... fde_n exit]
+
+isFinalState = add(q1) cmp(q1, q) // where q1 is the only acceptable state
+
+print result = .  // prints result of comparation the last state q with the only acceptable state q1
+
+machine = 
+    reading
+    preparation
+    setting up flag
+    delta function
+    isFinalState
+    print result
+
+
