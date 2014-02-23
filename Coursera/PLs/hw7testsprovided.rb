@@ -98,7 +98,7 @@ end
 #LineSegment Tests
 d = LineSegment.new(ONE,TWO,-THREE,-FOUR)
 if not (d.eval_prog([]) == d)
-	puts "LineSegement eval_prog should return self"
+	puts "LineSegment eval_prog should return self"
 end
 d1 = LineSegment.new(ONE,TWO,ONE,TWO)
 d2 = d1.preprocess_prog
@@ -168,5 +168,9 @@ if not (s1.x1 == TWO and s1.y1 == THREE and s1.x2 == SIX and s1.y2 == 9)
 	puts "Shift should shift e by dx and dy"
 end
 
-
+p1 = Intersect.new(LineSegment.new(ZERO,TWO,ZERO,ZERO), LineSegment.new(ZERO,THREE,ZERO,ONE))
+p = p1.preprocess_prog.eval_prog([])
+if not (p.x1 == ZERO and p.x2 == ZERO and p.y1 == ONE and p.y2 == TWO)
+	puts "Err1"
+end
 
