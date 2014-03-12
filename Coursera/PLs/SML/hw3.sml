@@ -16,7 +16,8 @@ datatype valu = Const of int
 
 fun g f1 f2 p =
     let 
-    val r = g f1 f2 
+    val r = g f1 f2
+     
     in
     case p of
         Wildcard          => f1 ()
