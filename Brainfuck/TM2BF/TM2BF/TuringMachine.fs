@@ -6,7 +6,7 @@ type ParserTM(code : string) =
     class
         let ident = skipws <| (many1 (pdigit <|> palpha) |>> chars2str)
         let pStart = pstrw "start" >>. symw '=' >>. ident
-        let pFinals = pstrw "finals" >>. symw '=' >>. splitterws ident (sym ',')
+        let pFinals = pstrw "finals" >>. symw '=' >>. ident >|>> (many (sym ',' >>. ident))
         let pDir = symw 'l' <|> symw 'r'
 
         let pDeltaElem = 
@@ -41,14 +41,8 @@ type ParserTM(code : string) =
 
         let parseMTDescription s = 
             match run pDescription s with
-            | Success(result, []) -> (result, [])
-            | Failure cs -> (emptyDescritption, ["Cannot parse turing machine desctiption";
-                                                 "Rest of code:\n" + (chars2str cs)])
-            | Success(result, rest) -> (emptyDescritption, ["Cannot parse turing machine desctiption";
-                                                            "Parser current result:";
-                                                            string result;
-                                                            "Rest of code:";
-                                                            chars2str rest])
+            | Success result -> (result, "")
+            | Failure err -> (emptyDescritption, err.ErrorMessage)
 
         let (descr, errors) = parseMTDescription code
 
@@ -126,7 +120,7 @@ type TuringMachineStd private (st, fns, dlt) =
             let parser = new ParserTM(text)
             if parser.HasErrors() then
                 printfn "Parser errors:"
-                List.iter (printfn "%A") <| parser.Errors
+                printfn "%A" <| parser.Errors
             let (s, fs, ds) = parser.Description
             new TuringMachineStd(s, fs, ds)    
 
@@ -172,23 +166,32 @@ type TM2BF(tm : TuringMachineStd) =
             | Left -> left n
             | Right -> right n
 
+        let copy_q = "[-<<<+<+>>>>]<<<<[->>>>+<<<<]"
+        let shift_cmp_res_q = "[->>>+<<<]"
+        let copy_x = "[-<<<<+<+>>>>>]<<<<<[->>>>>+<<<<<]"
+        let shift_cmp_res_x = "[->>+<<]"
+
          //   (q', a', b, d, p, direction)
         let de2bf (q : State, x : Alpha, p : State, y : Alpha, dir) =
-            "++[+> [-<<<+<+>>>>]<<<<[->>>>+<<<<]" + add q.Code + "[->-<]+>[<->[-]]<[->>>+<<<]>>>>>[-<<<<+<+>>>>>]<<<<<[->>>>>+<<<<<]"
-            +  add x.Code + "[->-<]+>[<->[-]]<[->>+<<]>>[->+<]<+>--[[+]<->]<[->>[-]>[-]"
-            +  add y.Code + shift d dir + "<" + add p.Code + "<+<]>[-<->]<+>]<[->+<]>--"
+            down + "[+>" + copy_q + add q.Code + cmp + shift_cmp_res_q + ">>>>>"
+            + copy_x + add x.Code + cmp + shift_cmp_res_x + ">>"
+            + and' + "[->>[-]>[-]" + add y.Code + shift d dir + "<"
+            + add p.Code + "<+<]>[-<->]<+>]" + up 
         
         let exit = "+"
-        let delta = List.fold (+) "" (List.map de2bf tm.Delta)
+        let delta = 
+            let rules = List.fold (+) "" (List.map de2bf tm.Delta)
+            printfn "Rules: %A" rules
+            "[" + rules + exit + "]"
         let isFinalState = add tm.FinalState.Code + cmp 
         let printResult = "."
 
-        let machine = reading +
-                      preparation +
-                      setUpFlag +
-                      delta +
-                      isFinalState +
+        let machine = reading + "\n" +
+                      preparation + "\n" +
+                      setUpFlag + "\n" +
+                      delta + "\n" +
+                      isFinalState + "\n" +
                       printResult
 
-        member x.CodeBF = machine
+        member x.CodeBF = if tm. machine
     end

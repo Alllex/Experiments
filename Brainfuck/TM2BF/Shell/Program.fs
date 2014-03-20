@@ -21,7 +21,8 @@ let main argv =
         let code = readFile inputFileName
         let tm = new TuringMachineStd(code)
         let codeBF = (new TM2BF(tm)).CodeBF
-        let N = tm.Letters.Length + tm.States.Length + 1
+        writeFile(outputFileName, codeBF)
+        let N = tm.Letters.Length + tm.States.Length + 10
         if argv.Length > 1 then
             let args = argv.[1].Split(',')
                        |> Array.map (int)

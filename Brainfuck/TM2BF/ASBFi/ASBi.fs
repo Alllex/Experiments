@@ -5,7 +5,7 @@ open ParserCombinators.Core
 
 type internal Tape = int list * int * int list
 
-type internal Expr = Chain of char list
+type Expr = Chain of char list
                    | Loop of Expr list
                    | List of Expr list
                    | End
@@ -61,12 +61,12 @@ type internal ParserBF(code : string) =
 
         let parseProgram s = 
             match run pgm s with
-            | Success(result, []) -> (result, [])
-            | _ -> (emptyProgram, ["Cannot parse program"])
+            | Success result -> (result, "")
+            | Failure err -> (emptyProgram, err.ErrorMessage)
 
         let (ast, errors) = parseProgram code
 
-        member x.HasErrors() = errors.Length > 0
+        member x.HasErrors() = errors <> ""
         member x.Errors() = errors
         member x.AST() = ast
     end
@@ -103,7 +103,7 @@ type internal InterpreterInteractive(code : string, N : int) =
             member x.Interpret() = 
                 if parser.HasErrors() then
                     printfn "Parser errors:"
-                    List.iter (printfn "%A") <| parser.Errors()
+                    printfn "%A" <| parser.Errors()
                 else
                     eval <| parser.AST()
                 printfn "END"
@@ -142,7 +142,7 @@ type internal InterpreterWithArgs(code : string, args : int [], N : int) =
             member x.Interpret() = 
                 if parser.HasErrors() then
                     printfn "Parser errors:"
-                    List.iter (printfn "%A") <| parser.Errors()
+                    printfn "%A" <| parser.Errors()
                 else
                     let stopWatch = Stopwatch.StartNew()
                     eval <| parser.AST()
@@ -153,6 +153,7 @@ type internal InterpreterWithArgs(code : string, args : int [], N : int) =
 
 type ASBi private (interpreter : Interpreter) =
     class
+        new(code : string) = new ASBi(new InterpreterInteractive(code, 1000000000))
         new(code : string, N : int) = new ASBi(new InterpreterInteractive(code, N))
         new(code : string, args : int [], N : int) = new ASBi(new InterpreterWithArgs(code, args, N))
 
