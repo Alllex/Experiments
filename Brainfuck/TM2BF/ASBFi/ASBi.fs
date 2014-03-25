@@ -36,7 +36,7 @@ type internal TapeBF(N : int) =
         member x.IsCurrectZero() = isZero tape
     end
 
-type internal ParserBF(code : string) =
+type ParserBF(code : string) =
     class
         let chainChar = any <| List.map symw ['.';',';'+';'-';'<';'>']
         let chain = many1 chainChar |>> Chain
@@ -55,20 +55,19 @@ type internal ParserBF(code : string) =
                 return ((List.fold (@) [c] lcs) @ (match ml with None -> [] | Some l -> [l]))
             }
 
-        let pgm = expr |>> (fun e -> List (e @ [End]))
-
-        let emptyProgram = List [End]
+        let pgm = expr |>> (fun e -> List (e @ [End])) .>> pws
 
         let parseProgram s = 
             match run pgm s with
-            | Success result -> (result, "")
-            | Failure err -> (emptyProgram, err.ErrorMessage)
+            | S(result, pi) -> (result, "")
+            | F(errpi) -> (ParserBF.EmptyAST, sprintf "At line %d, column %d: %s" errpi.Position.Line errpi.Position.Column errpi.Error.ErrorMessage)
 
         let (ast, errors) = parseProgram code
 
-        member x.HasErrors() = errors <> ""
-        member x.Errors() = errors
-        member x.AST() = ast
+        member x.HasErrors = errors <> ""
+        member x.Errors = errors
+        member x.AST = ast
+        static member EmptyAST = List [End]
     end
 
 type internal Interpreter =
@@ -101,11 +100,11 @@ type internal InterpreterInteractive(code : string, N : int) =
 
         interface Interpreter with
             member x.Interpret() = 
-                if parser.HasErrors() then
+                if parser.HasErrors then
                     printfn "Parser errors:"
-                    printfn "%A" <| parser.Errors()
+                    printfn "%A" <| parser.Errors
                 else
-                    eval <| parser.AST()
+                    eval <| parser.AST
                 printfn "END"
     end
 
@@ -140,12 +139,12 @@ type internal InterpreterWithArgs(code : string, args : int [], N : int) =
 
         interface Interpreter with
             member x.Interpret() = 
-                if parser.HasErrors() then
+                if parser.HasErrors then
                     printfn "Parser errors:"
-                    printfn "%A" <| parser.Errors()
+                    printfn "%A" <| parser.Errors
                 else
                     let stopWatch = Stopwatch.StartNew()
-                    eval <| parser.AST()
+                    eval <| parser.AST
                     stopWatch.Stop()
                     printfn "%.3f (sec) " stopWatch.Elapsed.TotalSeconds
                 printfn "END"
