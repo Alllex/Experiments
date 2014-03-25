@@ -41,8 +41,8 @@ type ParserTM(code : string) =
 
         let parseMTDescription s = 
             match run pDescription s with
-            | Success result -> (result, "")
-            | Failure err -> (emptyDescritption, err.ErrorMessage)
+            | S (result, _) -> (result, "")
+            | F err -> (emptyDescritption, err.Error.ErrorMessage)
 
         let (descr, errors) = parseMTDescription code
 
@@ -193,5 +193,5 @@ type TM2BF(tm : TuringMachineStd) =
                       isFinalState + "\n" +
                       printResult
 
-        member x.CodeBF = if tm. machine
+        member x.CodeBF = machine
     end
