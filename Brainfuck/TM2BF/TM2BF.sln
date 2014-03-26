@@ -7,7 +7,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TM2BF", "TM2BF\TM2BF.fsproj
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Shell", "Shell\Shell.fsproj", "{E7776856-C532-45F6-ABE1-2F21B7A3BF67}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ParserCombinators", "..\..\..\homeworks71\sem4\ParserCombinator\ParserCombinators.fsproj", "{6E86BC68-1370-4D81-A432-351F6F4039C9}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ParserCombinators", "ParserCombinators\ParserCombinators.fsproj", "{6E86BC68-1370-4D81-A432-351F6F4039C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

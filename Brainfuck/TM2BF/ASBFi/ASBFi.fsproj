@@ -50,7 +50,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\homeworks71\sem4\ParserCombinator\ParserCombinators.fsproj">
+    <ProjectReference Include="..\ParserCombinators\ParserCombinators.fsproj">
       <Name>ParserCombinators</Name>
       <Project>{6e86bc68-1370-4d81-a432-351f6f4039c9}</Project>
       <Private>True</Private>

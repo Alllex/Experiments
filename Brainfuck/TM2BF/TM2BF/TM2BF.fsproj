@@ -46,14 +46,14 @@
     <None Include="Script.fsx" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\homeworks71\sem4\ParserCombinator\ParserCombinators.fsproj">
-      <Name>ParserCombinators</Name>
-      <Project>{6e86bc68-1370-4d81-a432-351f6f4039c9}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\ASBFi\ASBFi.fsproj">
       <Name>ASBFi</Name>
       <Project>{b000682e-8c5f-4926-a9df-6daa082c3104}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ParserCombinators\ParserCombinators.fsproj">
+      <Name>ParserCombinators</Name>
+      <Project>{6e86bc68-1370-4d81-a432-351f6f4039c9}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
